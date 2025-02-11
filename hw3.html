@@ -3323,7 +3323,7 @@ The following objects are masked from &#39;package:stats&#39;:
 <section id="knn-concepts" class="level2">
 <h2 class="anchored" data-anchor-id="knn-concepts">2. <span class="math inline">\(K\)</span>NN Concepts</h2>
 <blockquote class="blockquote">
-<p><span style="color:red;font-weight:bold">TODO</span>: <em>Explain how the choice of K affects the quality of your prediction when using a <span class="math inline">\(K\)</span> Nearest Neighbors algorithm.</em></p>
+<p><span style="color:red;font-weight:bold">TODO</span>: An even number for K should not be used as it could result in a tie for nearest neighbor. The K should be chosen based on the sample set, as the result will be an average of the chosen neighbors. Large datasets should not have a very small K, and small datasets would not perform well with an overlarge K.</p>
 </blockquote>
 </section>
 <section id="feature-engineering" class="level2">
@@ -3342,19 +3342,17 @@ The following objects are masked from &#39;package:stats&#39;:
 <div class="cell">
 <div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>wine <span class="ot">&lt;-</span> wine <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">yearf=</span><span class="fu">as.factor</span>(year)) <span class="co">#Create new variable with year as a factor</span></span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="co"># CHECK did these new vars need to be numerical for boxcox processing?</span></span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>wine <span class="ot">&lt;-</span> wine <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(</span>
-<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">cherry=</span><span class="fu">str_detect</span>(description, <span class="st">&quot;[Cc]herry&quot;</span>), <span class="co"># cherry logic var</span></span>
-<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">choco=</span><span class="fu">str_detect</span>(description, <span class="st">&quot;[Cc]hocolate&quot;</span>), <span class="co"># create choco logic var</span></span>
-<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">earth=</span><span class="fu">str_detect</span>(description, <span class="st">&quot;[Ee]arth&quot;</span>), <span class="co"># create earth logic var</span></span>
-<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">yearf_cherry =</span> <span class="fu">interaction</span>(yearf, cherry), <span class="co"># interaction between yearf and cherry</span></span>
-<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">yearf_choco =</span> <span class="fu">interaction</span>(yearf, choco), <span class="co"># interaction between yearf and choco</span></span>
-<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">yearf_earth =</span> <span class="fu">interaction</span>(yearf, earth) <span class="co"># interaction between yearf and earf</span></span>
-<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>wine <span class="ot">&lt;-</span> wine <span class="sc">%&gt;%</span> <span class="fu">select</span>(<span class="sc">-</span>description) <span class="co"># zap description var now that we&#39;ve coded cherry, choco, and eARTh</span></span>
-<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(wine)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>wine <span class="ot">&lt;-</span> wine <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">cherry=</span><span class="fu">str_detect</span>(description, <span class="st">&quot;[Cc]herry&quot;</span>), <span class="co"># cherry logic var</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">choco=</span><span class="fu">str_detect</span>(description, <span class="st">&quot;[Cc]hocolate&quot;</span>), <span class="co"># create choco logic var</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">earth=</span><span class="fu">str_detect</span>(description, <span class="st">&quot;[Ee]arth&quot;</span>), <span class="co"># create earth logic var</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">yearf_cherry =</span> <span class="fu">interaction</span>(yearf, cherry), <span class="co"># interaction between yearf and cherry</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">yearf_choco =</span> <span class="fu">interaction</span>(yearf, choco), <span class="co"># interaction between yearf and choco</span></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">yearf_earth =</span> <span class="fu">interaction</span>(yearf, earth) <span class="co"># interaction between yearf and earf</span></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>wine <span class="ot">&lt;-</span> wine <span class="sc">%&gt;%</span> <span class="fu">select</span>(<span class="sc">-</span>description) <span class="co"># zap description var now that we&#39;ve coded cherry, choco, and eARTh</span></span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(wine)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>       id         province             price             points     
  Min.   :   1   Length:8380        Min.   :   7.00   Min.   :80.00  
@@ -3390,15 +3388,13 @@ The following objects are masked from &#39;package:stats&#39;:
 <li>Create dummy variables for the <code>year</code> factor column</li>
 </ol>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co">#CHECK if need to log dependent var when using BoxCox</span></span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="co"># box_wine &lt;- boxcoxTransform(wine)</span></span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="co"># print(box_wine)</span></span>
-<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>wine <span class="sc">%&gt;%</span> </span>
-<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">preProcess</span>(<span class="at">method =</span> <span class="fu">c</span>(<span class="st">&quot;BoxCox&quot;</span>,<span class="st">&quot;center&quot;</span>,<span class="st">&quot;scale&quot;</span>)) <span class="sc">%&gt;%</span> <span class="co"># CONFIRM this is the method to use here</span></span>
-<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">predict</span>(wine) <span class="sc">%&gt;%</span> </span>
-<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">head</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># box_wine &lt;- boxcoxTransform(wine)</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="co"># print(box_wine)</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>wine <span class="sc">%&gt;%</span> </span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">preProcess</span>(<span class="at">method =</span> <span class="fu">c</span>(<span class="st">&quot;BoxCox&quot;</span>,<span class="st">&quot;center&quot;</span>,<span class="st">&quot;scale&quot;</span>)) <span class="sc">%&gt;%</span> <span class="co"># CONFIRM this is the method to use here</span></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">predict</span>(wine) <span class="sc">%&gt;%</span> </span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">head</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>         id   province      price    points        year yearf cherry choco
 1 -2.206642     Oregon  0.7146905 -1.033841 -0.03425331  2012  FALSE FALSE
@@ -3476,27 +3472,36 @@ The following objects are masked from &#39;package:stats&#39;:
 <span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>wine_train <span class="ot">&lt;-</span> wine[windex, ] <span class="co"># assign partitioned 80% to training df</span></span>
 <span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>wine_test <span class="ot">&lt;-</span> wine[<span class="sc">-</span>windex, ] <span class="co"># assign remaining 20% to testing df</span></span>
 <span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a><span class="co"># fit &lt;- knn( # IN PROGRESS</span></span>
-<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a> <span class="co"># train = select(train,-province), </span></span>
-<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a> <span class="co"># test = select(test,-province), </span></span>
-<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a> <span class="co"># k=5, </span></span>
-<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a> <span class="co"># cl = train$province)</span></span>
-<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a><span class="co"># confusionMatrix(fit,factor(test$province))$overall # view confusion matrix for knn model</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a> model <span class="ot">&lt;-</span> <span class="fu">train</span>(</span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>  province <span class="sc">~</span> .,</span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> wine_train,</span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">method =</span> <span class="st">&quot;knn&quot;</span>,</span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">metric =</span> <span class="st">&quot;Kappa&quot;</span>,</span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">trControl =</span> <span class="fu">trainControl</span>(<span class="at">method =</span> <span class="st">&quot;cv&quot;</span>, <span class="at">number =</span> <span class="dv">5</span>),</span>
+<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">tuneLength =</span> <span class="dv">15</span>)</span>
+<span id="cb19-14"><a href="#cb19-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-15"><a href="#cb19-15" aria-hidden="true" tabindex="-1"></a>predicted <span class="ot">&lt;-</span> <span class="fu">predict</span>(model, wine_test) <span class="co"># apply model to test data</span></span>
+<span id="cb19-16"><a href="#cb19-16" aria-hidden="true" tabindex="-1"></a><span class="fu">confusionMatrix</span>(predicted,<span class="fu">factor</span>(wine_test<span class="sc">$</span>province))<span class="sc">$</span>overall <span class="co"># view confusion matrix for knn model predictions</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>      Accuracy          Kappa  AccuracyLower  AccuracyUpper   AccuracyNull 
+   0.502689779    0.191032603    0.478445298    0.526924808    0.472803347 
+AccuracyPValue  McnemarPValue 
+   0.007708841            NaN </code></pre>
+</div>
 </div>
 </section>
 <section id="kappa" class="level2">
 <h2 class="anchored" data-anchor-id="kappa">6. Kappa</h2>
 <p>How do we determine whether a Kappa value represents a good, bad or some other outcome?</p>
 <blockquote class="blockquote">
-<p><span style="color:red;font-weight:bold">TODO</span>: <em>Explain</em></p>
+<p><span style="color:red;font-weight:bold">TODO</span>: Cohen interprets Kappa values in bins, with .6-.8 being good, .4-.6 moderate, and below .4 fair. Higher than .8 is likely overfitted, and realistically below .5 is not a good value. Kappa indicates the likelihood of matching neighbors at random, vs. as modeled.</p>
 </blockquote>
 </section>
 <section id="improvement" class="level2">
 <h2 class="anchored" data-anchor-id="improvement">7. Improvement</h2>
 <p>How can we interpret the confusion matrix, and how can we improve in our predictions?</p>
 <blockquote class="blockquote">
-<p><span style="color:red;font-weight:bold">TODO</span>: <em>Explain</em></p>
+<p><span style="color:red;font-weight:bold">TODO</span>: The confusion matrix has a Kappa value of .18, a very low value for this model. This model is very ineffective at correctly identifying the province based on the features included. This appears to be over-identifying California, which is a large proportion of the training dataset. The predictions might be improved with a more balanced dataset, and likely the features could be changed to improve predictions.</p>
 </blockquote>
 </section>
 </section>

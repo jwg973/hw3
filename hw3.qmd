@@ -4,7 +4,7 @@ author: "Jon Garrow"
 date: "02/10/2025"
 
 format: 
-  html:  # You will quite likely want to change all but the last one, to taste
+  html: 
     theme: superhero  
     mainfont: monospace
     highlight-style: github
@@ -40,7 +40,7 @@ wine <- readRDS(gzcon(url("https://github.com/cd-public/D505/raw/master/dat/pino
 
 ## 2. $K$NN Concepts
 
-> <span style="color:red;font-weight:bold">TODO</span>: *Explain how the choice of K affects the quality of your prediction when using a $K$ Nearest Neighbors algorithm.*
+> <span style="color:red;font-weight:bold">TODO</span>: An even number for K should not be used as it could result in a tie for nearest neighbor. The K should be chosen based on the sample set, as the result will be an average of the chosen neighbors. Large datasets should not have a very small K, and small datasets would not perform well with an overlarge K.
 
 ## 3. Feature Engineering
 
@@ -52,8 +52,6 @@ wine <- readRDS(gzcon(url("https://github.com/cd-public/D505/raw/master/dat/pino
 
 ```{r}
 wine <- wine %>% mutate(yearf=as.factor(year)) #Create new variable with year as a factor
-
-# CHECK did these new vars need to be numerical for boxcox processing?
 
 wine <- wine %>% mutate(
   cherry=str_detect(description, "[Cc]herry"), # cherry logic var
@@ -73,7 +71,6 @@ summary(wine)
 2. Create dummy variables for the `year` factor column
 
 ```{r}
-#CHECK if need to log dependent var when using BoxCox
 
 # box_wine <- boxcoxTransform(wine)
 # print(box_wine)
@@ -104,23 +101,26 @@ set.seed(505) # set seed in case we need to recreate partioning
 wine_train <- wine[windex, ] # assign partitioned 80% to training df
 wine_test <- wine[-windex, ] # assign remaining 20% to testing df
 
-# fit <- knn( # IN PROGRESS
- # train = select(train,-province), 
- # test = select(test,-province), 
- # k=5, 
- # cl = train$province)
+ model <- train(
+  province ~ .,
+  data = wine_train,
+  method = "knn",
+  metric = "Kappa",
+  trControl = trainControl(method = "cv", number = 5),
+  tuneLength = 15)
 
-# confusionMatrix(fit,factor(test$province))$overall # view confusion matrix for knn model
+predicted <- predict(model, wine_test) # apply model to test data
+confusionMatrix(predicted,factor(wine_test$province))$overall # view confusion matrix for knn model predictions
 ```
 
 ## 6. Kappa
 
 How do we determine whether a Kappa value represents a good, bad or some other outcome?
 
-> <span style="color:red;font-weight:bold">TODO</span>: *Explain*
+> <span style="color:red;font-weight:bold">TODO</span>: Cohen interprets Kappa values in bins, with .6-.8 being good, .4-.6 moderate, and below .4 fair. Higher than .8 is likely overfitted, and realistically below .5 is not a good value. Kappa indicates the likelihood of matching neighbors at random, vs. as modeled. 
 
 ## 7. Improvement
 
 How can we interpret the confusion matrix, and how can we improve in our predictions?
 
-> <span style="color:red;font-weight:bold">TODO</span>: *Explain*
+> <span style="color:red;font-weight:bold">TODO</span>: The confusion matrix has a Kappa value of .18, a very low value for this model. This model is very ineffective at correctly identifying the province based on the features included. This appears to be over-identifying California, which is a large proportion of the training dataset. The predictions might be improved with a more balanced dataset, and likely the features could be changed to improve predictions.
